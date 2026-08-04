@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chofer - MartillosiRuedas</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #1a1d20; color: #f8f9fa; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 450px; }
+        .card { background: #2b3036; padding: 20px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid #3a4047; }
+        h2 { color: #ffcc00; margin: 0 0 5px 0; font-size: 22px; text-transform: uppercase; }
+        .saldo-box { background: #1a1d20; border: 1px solid #ffcc00; padding: 15px; border-radius: 12px; text-align: center; margin: 15px 0; }
+        .saldo-box p { font-size: 28px; font-weight: bold; margin: 5px 0 0 0; color: #ffcc00; }
+        .status-box { font-size: 15px; font-weight: bold; margin: 15px 0; padding: 12px; border-radius: 10px; text-align: center; }
+        .offline { background: #3d2020; color: #ff6b6b; border: 1px solid #ff4d4d; }
+        .online { background: #1e3d20; color: #6bff6b; border: 1px solid #28a745; }
+        button { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-green { background: #28a745; color: #fff; }
+        .btn-red { background: #dc3545; color: #fff; }
+        .btn-yellow { background: #ffcc00; color: #111; }
+        .btn-wa { display: block; background: #25D366; color: #fff; text-align: center; padding: 12px; border-radius: 12px; font-weight: bold; text-decoration: none; margin-top: 10px; font-size: 15px; }
+        .btn-wa:hover { background: #1ebc57; }
+        .viaje-activo { background: #1a1d20; border: 2px solid #ffcc00; padding: 15px; border-radius: 12px; text-align: center; }
+        .historial-item { background: #1a1d20; border: 1px solid #3a4047; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; }
+        .historial-item span { font-weight: bold; color: #ffcc00; }
+        .logout { color: #ff4d4d; text-decoration: none; font-weight: bold; display: block; margin-top: 15px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>🏍️ Panel Chofer</h2>
+            <p style="color: #aaa; font-size: 13px; margin: 0;"><b>{{ chofer.nombre }}</b> | Placa: <span style="color:#ffcc00;">{{ chofer.placa_moto }}</span></p>
+
+            <div class="saldo-box">
+                <span style="font-size: 11px; color: #aaa;">SALDO BILLETERA VIRTUAL</span>
+                <p>${{ "%.2f"|format(chofer.saldo_usd) }} USD</p>
+            </div>
+
+            {% if viaje_activo %}
+                <div class="viaje-activo">
+                    <h3 style="color: #ffcc00; margin-top:0;">¡VIAJE EN CURSO! 📍</h3>
+                    <p><b>Pasajero:</b> {{ viaje_activo.pasajero_nombre }}</p>
+                    <p><b>Teléfono:</b> <a href="tel:{{ viaje_activo.pasajero_tel }}" style="color:#ffcc00;">{{ viaje_activo.pasajero_tel }}</a></p>
+                    <p><b>Tarifa a cobrar:</b> <span style="color:#ffcc00; font-size:18px; font-weight:bold;">${{ "%.2f"|format(viaje_activo.tarifa_usd) }} USD</span></p>
+
+                    <a href="https://wa.me/{{ viaje_activo.pasajero_tel | wa_format }}?text=Hola%20{{ viaje_activo.pasajero_nombre }},%20soy%20tu%20chofer%20de%20MartillosiRuedas.%20Ya%20voy%20en%20camino." target="_blank" class="btn-wa">
+                        💬 Abrir Chat de WhatsApp
+                    </a>
+                    
+                    <form action="/chofer/finalizar-carrera/{{ viaje_activo.id }}" method="POST" style="margin-top: 12px;">
+                        <button type="submit" class="btn-green" style="padding: 15px; font-size: 16px;">✅ Finalizar Carrera</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="status-box {% if chofer.estatus_chofer == 'online' %}online{% else %}offline{% endif %}">
+                    Estatus: {{ chofer.estatus_chofer | upper }}
+                </div>
+
+                <form action="/chofer/toggle" method="POST">
+                    <button type="submit" class="{% if chofer.estatus_chofer == 'online' %}btn-red{% else %}btn-green{% endif %}">
+                        {% if chofer.estatus_chofer == 'online' %}Pasar a OFFLINE{% else %}Pasar a ONLINE{% endif %}
+                    </button>
+                </form>
+
+                {% if chofer.estatus_chofer == 'online' %}
+                    <hr style="border-color:#3a4047; margin: 20px 0;">
+                    <div id="contenedor-carreras">
+                        <p style="color: #aaa; font-size: 13px; text-align:center;">Buscando pasajeros en San Juan de los Morros...</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <hr style="margin: 20px 0; border-color:#3a4047;">
+            <h3 style="margin-bottom: 10px; font-size: 15px; color:#ffcc00;">📋 Historial de Viajes Finalizados</h3>
+            {% if historial %}
+                {% for h in historial %}
+                    <div class="historial-item">
+                        <p style="margin:0 0 5px 0;"><b>Pasajero:</b> {{ h.pasajero_nombre }}</p>
+                        <p style="margin:0;"><b>Cobrado al cliente:</b> <span>${{ "%.2f"|format(h.tarifa_usd) }} USD</span></p>
+                        <p style="margin:2px 0 0 0; font-size: 11px; color: #aaa;">Comisión app (9%): -${{ "%.2f"|format(h.comision_admin) }} USD</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="font-size: 13px; color: #aaa;">Aún no has completado carreras.</p>
+            {% endif %}
+
+            <a href="/logout" class="logout">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    {% if not viaje_activo and chofer.estatus_chofer == 'online' %}
+    <script>
+        function buscarCarreras() {
+            fetch('/api/carreras-pendientes')
+                .then(res => res.json())
+                .then(data => {
+                    const cont = document.getElementById('contenedor-carreras');
+                    if (data.length > 0) {
+                        let html = '';
+                        data.forEach(c => {
+                            html += `<div style="background: #1a1d20; border: 1px solid #ffcc00; padding: 15px; border-radius: 12px; margin-top: 10px;">
+                                        <p style="color:#ffcc00; margin:0; font-weight:bold;">🔔 ¡Nueva Carrera Solicitada!</p>
+                                        <p style="margin: 5px 0 10px 0;"><b>Tarifa:</b> $${c.tarifa_usd.toFixed(2)} USD</p>
+                                        <button onclick="aceptarCarrera(${c.id})" class="btn-yellow">Aceptar Viaje</button>
+                                     </div>`;
+                        });
+                        cont.innerHTML = html;
+                    } else {
+                        cont.innerHTML = '<p style="color: #aaa; font-size: 13px; text-align:center;">Buscando pasajeros...</p>';
+                    }
+                });
+        }
+
+        function aceptarCarrera(id) {
+            fetch('/api/aceptar-carrera/' + id, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exito) location.reload();
+                    else alert('Error: ' + data.motivo);
+                });
+        }
+        setInterval(buscarCarreras, 3000);
+    </script>
+    {% endif %}
+</body>
+</html>

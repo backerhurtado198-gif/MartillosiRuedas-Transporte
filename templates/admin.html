@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - MartillosiRuedas</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #1a1d20; color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 800px; }
+        .card { background: #2b3036; padding: 25px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid #3a4047; margin-bottom: 20px; }
+        h2, h3 { color: #ffcc00; margin-top: 0; text-transform: uppercase; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1a1d20; border: 1px solid #ffcc00; padding: 15px; border-radius: 12px; text-align: center; }
+        .stat-card span { font-size: 11px; color: #aaa; }
+        .stat-card p { font-size: 24px; font-weight: bold; color: #ffcc00; margin: 5px 0 0 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #3a4047; }
+        th { color: #ffcc00; background: #1a1d20; }
+        .btn-export { background: #28a745; color: #fff; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 15px; font-size: 13px; }
+        .btn-sm { padding: 5px 8px; font-size: 11px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-success { background: #28a745; color: #fff; }
+        .logout { color: #ff4d4d; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>👑 Panel de Administración</h2>
+            <a href="/admin/exportar-reporte" class="btn-export">📥 Exportar Reporte General (Excel/CSV)</a>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>CARRERAS COMPLETADAS</span>
+                    <p>{{ stats.total_carreras }}</p>
+                </div>
+                <div class="stat-card">
+                    <span>VOLUMEN TOTAL</span>
+                    <p>${{ "%.2f"|format(stats.volumen_total) }}</p>
+                </div>
+                <div class="stat-card">
+                    <span>GANANCIAS ADMIN (9%)</span>
+                    <p>${{ "%.2f"|format(stats.tus_ganancias) }}</p>
+                </div>
+            </div>
+
+            <h3>🏍️ Control de Choferes</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Chofer</th>
+                            <th>Placa</th>
+                            <th>Saldo</th>
+                            <th>Carreras</th>
+                            <th>Generado</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in choferes %}
+                        <tr>
+                            <td><b>{{ c.nombre }}</b><br><small style="color:#aaa;">{{ c.telefono }}</small></td>
+                            <td><span style="background:#ffcc00; color:#111; padding:2px 5px; border-radius:3px; font-weight:bold;">{{ c.placa_moto }}</span></td>
+                            <td><b>${{ "%.2f"|format(c.saldo_usd) }}</b></td>
+                            <td>{{ c.carreras_completadas }}</td>
+                            <td>${{ "%.2f"|format(c.total_generado) }}</td>
+                            <td>
+                                {% if c.estado_cuenta == 'suspendido' %}
+                                    <span style="color:#ff4d4d; font-weight:bold;">SUSPENDIDO</span>
+                                {% else %}
+                                    <span style="color:#28a745; font-weight:bold;">ACTIVO</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="/admin/chofer/toggle-estado/{{ c.id }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn-sm {% if c.estado_cuenta == 'suspendido' %}btn-success{% else %}btn-danger{% endif %}">
+                                        {% if c.estado_cuenta == 'suspendido' %}Activar{% else %}Suspender{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <a href="/logout" class="logout">Cerrar Sesión</a>
+        </div>
+    </div>
+</body>
+</html>

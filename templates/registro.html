@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MartillosiRuedas - Registro</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #1a1d20; color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .card { background: #2b3036; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); width: 100%; max-width: 420px; border: 1px solid #3a4047; }
+        h2 { color: #ffcc00; margin: 0 0 20px 0; font-size: 22px; text-transform: uppercase; text-align: center; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 14px; border: 1px solid #4a515a; border-radius: 8px; background: #1a1d20; color: #fff; box-sizing: border-box; font-size: 14px; }
+        input:focus, select:focus { border-color: #ffcc00; outline: none; }
+        .campos-moto { background: #22262a; padding: 12px; border-radius: 10px; border: 1px dashed #ffcc00; margin-bottom: 14px; display: none; }
+        button { width: 100%; padding: 13px; background: #ffcc00; color: #111; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        button:hover { background: #e6b800; }
+        a { color: #aaa; text-decoration: none; font-size: 13px; display: block; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Crear Cuenta</h2>
+        <form method="POST">
+            <label>Tipo de Usuario</label>
+            <select name="rol" id="rol" onchange="toggleMoto()">
+                <option value="pasajero">Pasajero</option>
+                <option value="chofer">Chofer de Moto</option>
+            </select>
+
+            <label>Nombre Completo</label>
+            <input type="text" name="nombre" required>
+
+            <label>Cédula</label>
+            <input type="text" name="cedula" required>
+
+            <label>Teléfono</label>
+            <input type="text" name="telefono" required>
+
+            <label>Contraseña</label>
+            <input type="password" name="password" required>
+
+            <div id="seccion-moto" class="campos-moto">
+                <p style="color:#ffcc00; margin:0 0 10px 0; font-size:13px; font-weight:bold;">🏍️ Datos de la Motocicleta</p>
+                <label>Placa</label>
+                <input type="text" name="placa_moto">
+                <label>Modelo</label>
+                <input type="text" name="modelo_moto">
+                <label>Año</label>
+                <input type="text" name="anio_moto">
+            </div>
+
+            <button type="submit">Registrarse</button>
+        </form>
+        <a href="/">¿Ya tienes cuenta? Inicia sesión</a>
+    </div>
+
+    <script>
+        function toggleMoto() {
+            const rol = document.getElementById('rol').value;
+            document.getElementById('seccion-moto').style.display = (rol === 'chofer') ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

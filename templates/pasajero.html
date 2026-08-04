@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasajero - MartillosiRuedas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #1a1d20; color: #f8f9fa; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 450px; }
+        .card { background: #2b3036; padding: 20px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid #3a4047; }
+        h2 { color: #ffcc00; margin: 0 0 15px 0; font-size: 22px; text-transform: uppercase; }
+        #mapa { height: 260px; width: 100%; border-radius: 12px; margin-bottom: 12px; border: 2px solid #3a4047; }
+        .tarifa-box { background: #1a1d20; color: #fff; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 12px; border: 1px solid #ffcc00; }
+        .tarifa-box p { font-size: 28px; font-weight: bold; margin: 5px 0 0 0; color: #ffcc00; }
+        button { width: 100%; padding: 14px; background: #ffcc00; color: #111; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        button:hover { background: #e6b800; }
+        .btn-gps { background: #3a4047; color: #ffcc00; border: 1px solid #ffcc00; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; width: 100%; }
+        .btn-gps:hover { background: #4a515a; }
+        .info-viaje { background: #1a1d20; border: 1px solid #ffcc00; padding: 15px; border-radius: 12px; text-align: center; }
+        .btn-wa { display: block; background: #25D366; color: #fff; text-align: center; padding: 12px; border-radius: 12px; font-weight: bold; text-decoration: none; margin-top: 12px; font-size: 15px; }
+        .btn-wa:hover { background: #1ebc57; }
+        .historial-item { background: #1a1d20; border: 1px solid #3a4047; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; }
+        .historial-item span { font-weight: bold; color: #ffcc00; }
+        .logout { color: #ff4d4d; text-decoration: none; font-weight: bold; display: block; margin-top: 15px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>🛵 Pedir Moto</h2>
+            
+            {% if viaje %}
+                <div class="info-viaje">
+                    <h3 style="color:#ffcc00; margin-top:0;">STATUS: {{ viaje.estado | upper }}</h3>
+                    <p><b>Tarifa:</b> ${{ "%.2f"|format(viaje.tarifa_usd) }} USD</p>
+                    
+                    {% if viaje.estado == 'pendiente' %}
+                        <p style="color:#aaa;">Buscando chofer disponible cerca de ti...</p>
+                        <form action="/pasajero/cancelar/{{ viaje.id }}" method="POST">
+                            <button type="submit" style="background: #dc3545; color: #fff;">Cancelar Búsqueda</button>
+                        </form>
+                    {% elif viaje.estado == 'aceptado' %}
+                        <hr style="border-color:#3a4047;">
+                        <p style="color:#ffcc00; font-weight:bold;">¡Tu Moto va en camino!</p>
+                        <p><b>Chofer:</b> {{ viaje.chofer_nombre }}</p>
+                        <p><b>Placa:</b> <span style="background: #ffcc00; color: #111; padding: 3px 8px; font-weight: bold; border-radius: 4px;">{{ viaje.chofer_placa }}</span></p>
+                        <p><b>Teléfono:</b> <a href="tel:{{ viaje.chofer_tel }}" style="color:#ffcc00;">{{ viaje.chofer_tel }}</a></p>
+
+                        <a href="https://wa.me/{{ viaje.chofer_tel | wa_format }}?text=Hola%20{{ viaje.chofer_nombre }},%20soy%20tu%20pasajero%20de%20MartillosiRuedas." target="_blank" class="btn-wa">
+                            💬 Abrir Chat de WhatsApp
+                        </a>
+
+                        <p style="font-size: 12px; color: #aaa; margin-top: 15px;">El chofer finalizará el viaje cuando llegues a tu destino.</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <button type="button" class="btn-gps" onclick="obtenerUbicacionActual()">
+                    📍 Usar mi ubicación actual (GPS)
+                </button>
+
+                <div id="mapa"></div>
+                
+                <div class="tarifa-box">
+                    <span style="font-size:12px; color:#aaa;">TARIFA ESTIMADA</span>
+                    <p id="texto-tarifa">$1.00 USD</p>
+                </div>
+                
+                <form method="POST">
+                    <input type="hidden" name="tarifa" id="input-tarifa" value="1.00">
+                    <button type="submit">Solicitar Moto</button>
+                </form>
+            {% endif %}
+
+            <hr style="margin: 20px 0; border-color: #3a4047;">
+            <h3 style="margin-bottom: 10px; font-size: 15px; color:#ffcc00;">📋 Mis Viajes Realizados</h3>
+            {% if historial %}
+                {% for h in historial %}
+                    <div class="historial-item">
+                        <p style="margin:0 0 3px 0;"><b>Chofer:</b> {{ h.chofer_nombre if h.chofer_nombre else 'Asignado' }} ({{ h.chofer_placa if h.chofer_placa else 'S/P' }})</p>
+                        <p style="margin:0;"><b>Monto Pagado:</b> <span>${{ "%.2f"|format(h.tarifa_usd) }} USD</span></p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="font-size: 13px; color: #aaa;">Aún no has realizado viajes.</p>
+            {% endif %}
+            
+            <a href="/logout" class="logout">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    {% if viaje %}
+    <script>
+        setInterval(() => { location.reload(); }, 4000);
+    </script>
+    {% else %}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('mapa').setView([9.9115, -67.3538], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+        let mOrigen = L.marker([9.9150, -67.3550], {draggable: true}).addTo(map);
+        let mDestino = L.marker([9.9050, -67.3500], {draggable: true}).addTo(map);
+
+        mOrigen.bindPopup("📍 Punto de Recogida (Origen)").openPopup();
+        mDestino.bindPopup("🏁 Destino");
+
+        function recalcular() {
+            const pO = mOrigen.getLatLng(), pD = mDestino.getLatLng();
+            fetch('/api/calcular-tarifa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat_origen: pO.lat, lon_origen: pO.lng, lat_destino: pD.lat, lon_destino: pD.lng })
+            }).then(r => r.json()).then(data => {
+                document.getElementById('texto-tarifa').innerText = `$${data.tarifa_usd.toFixed(2)} USD`;
+                document.getElementById('input-tarifa').value = data.tarifa_usd;
+            });
+        }
+
+        function obtenerUbicacionActual() {
+            if ("geolocation" in navigator) {
+                const btn = document.querySelector('.btn-gps');
+                btn.innerText = "⏳ Obteniendo ubicación GPS...";
+                btn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        mOrigen.setLatLng([lat, lng]);
+                        map.setView([lat, lng], 16);
+                        recalcular();
+                        btn.innerText = "📍 Usar mi ubicación actual (GPS)";
+                        btn.disabled = false;
+                    },
+                    (error) => {
+                        alert("No se pudo obtener la ubicación GPS. Verifica los permisos de tu navegador.");
+                        btn.innerText = "📍 Usar mi ubicación actual (GPS)";
+                        btn.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                alert("Tu dispositivo no soporta geolocalización por GPS.");
+            }
+        }
+
+        mOrigen.on('dragend', recalcular);
+        mDestino.on('dragend', recalcular);
+        recalcular();
+    </script>
+    {% endif %}
+</body>
+</html>

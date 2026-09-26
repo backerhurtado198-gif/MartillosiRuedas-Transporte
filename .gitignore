@@ -1,0 +1,24 @@
+NTUSER*
+ntuser*
+Music/
+Pictures/
+OneDrive/
+Saved Games/
+Searches/
+Videos/
+VeePN/
+WPS*
+build/
+lib/
+assets/
+*.log
+*.lnk
+*.dat
+*.regtrans-ms
+*.blf
+martillos_web/
+martillos_y_ruedas/
+martillos_y_ruedas_app/
+mototaxi_backend/
+SistemaMotoTaxi/
+Desktop/

@@ -1,0 +1,91 @@
+﻿/* Estilos App Nativa - MartillosiRuedas */
+
+/* Panel Flotante Bottom Sheet */
+.mobile-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1e1e1e;
+    color: #ffffff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    box-shadow: 0px -5px 15px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Animación Radar de Búsqueda */
+.radar-pulse {
+    width: 20px;
+    height: 20px;
+    background-color: #f39c12;
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(243, 156, 18, 0.4);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(243, 156, 18, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(243, 156, 18, 0);
+    }
+}
+
+/* Modal de Calificación */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: #1e1e1e;
+    color: #ffffff;
+    padding: 25px;
+    border-radius: 20px;
+    width: 85%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    border: 1px solid #333;
+}
+
+.stars-rating {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.star-btn {
+    font-size: 2.5rem;
+    color: #444;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.1s ease;
+    user-select: none;
+}
+
+.star-btn.active,
+.star-btn.hover {
+    color: #f1c40f;
+    transform: scale(1.15);
+}

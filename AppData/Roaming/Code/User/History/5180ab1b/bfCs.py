@@ -1,1 +1,0 @@
-generador_bingo_imagen.py

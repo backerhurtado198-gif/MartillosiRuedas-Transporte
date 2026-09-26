@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS - MartillosiRuedas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #1a1a1a; color: white; font-family: sans-serif; text-align: center; }
+        #mapa { height: 80vh; width: 100%; border-radius: 10px; margin-top: 10px; }
+        h2 { margin-top: 20px; color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <h2>📡 Prueba de Ubicación GPS</h2>
+    <p>Buscando señal de satélite...</p>
+    <div id="mapa"></div>
+
+    <script>
+        // Iniciar mapa centrado en San Juan de los Morros
+        var map = L.map('mapa').setView([9.9115, -67.3538], 14);
+
+        // Cargar los mapas gratuitos de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Solicitar GPS al dispositivo
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                var lat = pos.coords.latitude;
+                var lon = pos.coords.longitude;
+                
+                // Poner el marcador en la posición exacta
+                var marker = L.marker([lat, lon]).addTo(map)
+                    .bindPopup('<b>¡Aquí estás!</b>')
+                    .openPopup();
+                
+                // Mover la cámara a tu ubicación
+                map.setView([lat, lon], 17);
+                document.querySelector('p').innerText = "📍 Ubicación encontrada con éxito";
+            }, function(error) {
+                document.querySelector('p').innerText = "❌ Error: Activa el GPS o da los permisos al navegador.";
+            });
+        }
+    </script>
+</body>
+</html>

@@ -27,6 +27,15 @@
     </style>
 </head>
 <body>
+    <!-- BLOQUE DE SISTEMA DE REFERIDOS (2%) -->
+    <div style="margin: 15px; padding: 12px; background-color: #e8f5e9; border-radius: 8px; border-left: 5px solid #2e7d32; font-family: sans-serif;">
+        <p style="margin: 0; font-size: 15px; color: #1b5e20; font-weight: bold;">
+            🏍️ Ganancias por Referidos: $<span id="saldo-referidos">{{ saldo_referidos if saldo_referidos else '0.00' }}</span>
+        </p>
+        <p style="margin: 5px 0 0 0; font-size: 12px; color: #333;">
+            Tu código para invitar: <strong>{{ username if username else 'Tu Nombre/PIN' }}</strong>
+        </p>
+    </div>
     <div class="container">
         <div class="card">
             <h2>🏍️ Panel Chofer</h2>
@@ -125,3 +134,5 @@
     {% endif %}
 </body>
 </html>
+
+

@@ -3,91 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración - MartillosiRuedas</title>
+    <title>Panel Administrador - MartillosiRuedas</title>
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #1a1d20; color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 800px; }
-        .card { background: #2b3036; padding: 25px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid #3a4047; margin-bottom: 20px; }
-        h2, h3 { color: #ffcc00; margin-top: 0; text-transform: uppercase; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #1a1d20; border: 1px solid #ffcc00; padding: 15px; border-radius: 12px; text-align: center; }
-        .stat-card span { font-size: 11px; color: #aaa; }
-        .stat-card p { font-size: 24px; font-weight: bold; color: #ffcc00; margin: 5px 0 0 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #3a4047; }
-        th { color: #ffcc00; background: #1a1d20; }
-        .btn-export { background: #28a745; color: #fff; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 15px; font-size: 13px; }
-        .btn-sm { padding: 5px 8px; font-size: 11px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-danger { background: #dc3545; color: #fff; }
-        .btn-success { background: #28a745; color: #fff; }
-        .logout { color: #ff4d4d; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; font-size: 14px; }
+        body { background: #121212; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        h1 { color: #ffbb00; margin: 0; font-size: 24px; }
+        .btn-logout { background: #ff4444; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
+        .btn-logout:hover { background: #cc0000; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #1e1e1e; padding: 20px; border-radius: 8px; border-left: 5px solid #ffbb00; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .stat-card h3 { margin: 0; color: #aaa; font-size: 14px; }
+        .stat-card p { margin: 10px 0 0 0; color: #fff; font-size: 22px; font-weight: bold; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        .card h2 { color: #ffbb00; margin-top: 0; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1a1a1a; border-radius: 5px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; font-size: 14px; }
+        th { background: #252525; color: #ffbb00; }
+        .btn-action { background: #ffbb00; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-action:hover { background: #e0a800; }
+        .btn-pay { background: #00ff88; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-pay:hover { background: #00cc6a; }
+        .badge-cycle { background: #ffbb00; color: #000; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .form-inline { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .form-inline input, .form-inline select { padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 5px; flex: 1; min-width: 150px; }
+        .form-inline button { padding: 10px 20px; background: #ffbb00; color: #000; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h2>👑 Panel de Administración</h2>
-            <a href="/admin/exportar-reporte" class="btn-export">📥 Exportar Reporte General (Excel/CSV)</a>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span>CARRERAS COMPLETADAS</span>
-                    <p>{{ stats.total_carreras }}</p>
-                </div>
-                <div class="stat-card">
-                    <span>VOLUMEN TOTAL</span>
-                    <p>${{ "%.2f"|format(stats.volumen_total) }}</p>
-                </div>
-                <div class="stat-card">
-                    <span>GANANCIAS ADMIN (9%)</span>
-                    <p>${{ "%.2f"|format(stats.tus_ganancias) }}</p>
-                </div>
-            </div>
+    <header>
+        <h1>🛡️ Panel de Administración - MartillosiRuedas</h1>
+        <div>
+            <a href="/api/admin/export" class="btn-action" style="padding: 10px 15px; text-decoration:none; margin-right:10px;">📥 Exportar CSV</a>
+            <a href="/logout" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </header>
 
-            <h3>🏍️ Control de Choferes</h3>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Chofer</th>
-                            <th>Placa</th>
-                            <th>Saldo</th>
-                            <th>Carreras</th>
-                            <th>Generado</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for c in choferes %}
-                        <tr>
-                            <td><b>{{ c.nombre }}</b><br><small style="color:#aaa;">{{ c.telefono }}</small></td>
-                            <td><span style="background:#ffcc00; color:#111; padding:2px 5px; border-radius:3px; font-weight:bold;">{{ c.placa_moto }}</span></td>
-                            <td><b>${{ "%.2f"|format(c.saldo_usd) }}</b></td>
-                            <td>{{ c.carreras_completadas }}</td>
-                            <td>${{ "%.2f"|format(c.total_generado) }}</td>
-                            <td>
-                                {% if c.estado_cuenta == 'suspendido' %}
-                                    <span style="color:#ff4d4d; font-weight:bold;">SUSPENDIDO</span>
-                                {% else %}
-                                    <span style="color:#28a745; font-weight:bold;">ACTIVO</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <form action="/admin/chofer/toggle-estado/{{ c.id }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn-sm {% if c.estado_cuenta == 'suspendido' %}btn-success{% else %}btn-danger{% endif %}">
-                                        {% if c.estado_cuenta == 'suspendido' %}Activar{% else %}Suspender{% endif %}
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <a href="/logout" class="logout">Cerrar Sesión</a>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Carreras</h3>
+            <p id="stat-carreras">0</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #00ff88;">
+            <h3>Ingresos Brutos</h3>
+            <p id="stat-ingresos">$0.00</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #00aaff;">
+            <h3>Comisión Plataforma (15%)</h3>
+            <p id="stat-comision">$0.00</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #ff55ff;">
+            <h3>Pago Padrinos (3%)</h3>
+            <p id="stat-padrinos">$0.00</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #ffbb00;">
+            <h3>Ganancia Neta</h3>
+            <p id="stat-neta">$0.00</p>
         </div>
     </div>
+
+    <!-- GESTIÓN DE CHOFERES Y PAGOS DE REFERIDOS -->
+    <div class="card">
+        <h2>
+            <span>🏍️ Gestión de Choferes y Liquidación de Referidos</span>
+            <span class="badge-cycle">⏳ Ciclo de pago: Cada 2 días</span>
+        </h2>
+        <form class="form-inline" id="form-chofer">
+            <input type="text" id="nombre-chofer" placeholder="Nombre del Chofer" required>
+            <input type="text" id="pin-chofer" placeholder="PIN de 4 dígitos" required maxlength="4">
+            <input type="text" id="unidad-chofer" placeholder="Unidad (Ej: Unidad #2)" required>
+            <select id="select-padrino">
+                <option value="0">Sin Padrino (Independiente)</option>
+            </select>
+            <button type="submit">Registrar Chofer</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>PIN</th>
+                    <th>Unidad</th>
+                    <th>Padrino / Referidor</th>
+                    <th>Comisión Pendiente (Referidos)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-choferes">
+                <tr><td colspan="7" style="text-align: center; color: #888;">Cargando choferes...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- GESTIÓN DE PASAJEROS -->
+    <div class="card">
+        <h2>👤 Gestión de Pasajeros Autorizados</h2>
+        <form class="form-inline" id="form-pasajero">
+            <input type="text" id="nombre-pasajero" placeholder="Nombre del Pasajero" required>
+            <input type="text" id="contacto-pasajero" placeholder="Correo @gmail.com o Móvil (0412...)" required>
+            <button type="submit">Registrar Pasajero</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Contacto Registrado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-pasajeros">
+                <tr><td colspan="4" style="text-align: center; color: #888;">Cargando pasajeros...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- HISTORIAL DE CARRERAS -->
+    <div class="card">
+        <h2>📋 Historial Completo de Carreras y Distribución de Comisiones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Chofer</th>
+                    <th>Pasajero</th>
+                    <th>Comisión (15%)</th>
+                    <th>Padrino</th>
+                    <th>Comisión Padrino (3%)</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-carreras">
+                <tr><td colspan="10" style="text-align: center; color: #888;">Cargando historial...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function cargarDatosAdmin() {
+            fetch('/api/admin/stats')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) return;
+                    document.getElementById('stat-carreras').innerText = data.total_carreras;
+                    document.getElementById('stat-ingresos').innerText = '$' + data.ingresos_brutos.toFixed(2);
+                    document.getElementById('stat-comision').innerText = '$' + data.comision_plataforma_total.toFixed(2);
+                    document.getElementById('stat-padrinos').innerText = '$' + data.pago_padrinos_total.toFixed(2);
+                    document.getElementById('stat-neta').innerText = '$' + data.ganancia_neta.toFixed(2);
+
+                    let tbodyC = document.getElementById('tabla-carreras');
+                    if (data.carreras.length === 0) {
+                        tbodyC.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #888;">No hay carreras registradas.</td></tr>';
+                    } else {
+                        tbodyC.innerHTML = '';
+                        data.carreras.forEach(c => {
+                            tbodyC.innerHTML += `
+                                <tr>
+                                    <td>#${c.id}</td>
+                                    <td>${c.tipo}</td>
+                                    <td>$${c.precio.toFixed(2)}</td>
+                                    <td><b>${c.estado}</b></td>
+                                    <td>${c.chofer}</td>
+                                    <td>${c.pasajero}</td>
+                                    <td style="color:#00aaff;">$${c.comision.toFixed(2)}</td>
+                                    <td>${c.padrino_nombre}</td>
+                                    <td style="color:#ff55ff;">$${c.padrino_comision.toFixed(2)}</td>
+                                    <td><button class="btn-action" style="background:#ff4444; color:#fff;" onclick="eliminarCarrera(${c.id})">Eliminar</button></td>
+                                </tr>
+                            `;
+                        });
+                    }
+                });
+
+            fetch('/api/admin/drivers')
+                .then(res => res.json())
+                .then(drivers => {
+                    let tbodyD = document.getElementById('tabla-choferes');
+                    let selectP = document.getElementById('select-padrino');
+                    
+                    selectP.innerHTML = '<option value="0">Sin Padrino (Independiente)</option>';
+                    if (drivers.length === 0) {
+                        tbodyD.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888;">No hay choferes registrados.</td></tr>';
+                        return;
+                    }
+                    tbodyD.innerHTML = '';
+                    drivers.forEach(d => {
+                        selectP.innerHTML += `<option value="${d.id}">${d.name} (${d.unidad})</option>`;
+                        
+                        let pendiente = d.ganancia_pendiente || 0;
+                        let botonPagar = pendiente > 0 
+                            ? `<button class="btn-pay" onclick="pagarReferidos(${d.id})">Pagar ($${pendiente.toFixed(2)})</button>` 
+                            : `<span style="color: #888;">Al día ($0.00)</span>`;
+
+                        tbodyD.innerHTML += `
+                            <tr>
+                                <td>#${d.id}</td>
+                                <td>${d.name}</td>
+                                <td>${d.pin}</td>
+                                <td>${d.unidad}</td>
+                                <td>${d.padrino_nombre}</td>
+                                <td style="color: #00ff88; font-weight: bold;">$${pendiente.toFixed(2)}</td>
+                                <td>
+                                    ${botonPagar}
+                                    <button class="btn-action" style="background:#ff4444; color:#fff; margin-left:5px;" onclick="eliminarChofer(${d.id})">Eliminar</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+
+            fetch('/api/admin/passengers')
+                .then(res => res.json())
+                .then(passengers => {
+                    let tbodyP = document.getElementById('tabla-pasajeros');
+                    if (passengers.length === 0) {
+                        tbodyP.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888;">No hay pasajeros registrados.</td></tr>';
+                        return;
+                    }
+                    tbodyP.innerHTML = '';
+                    passengers.forEach(p => {
+                        tbodyP.innerHTML += `
+                            <tr>
+                                <td>#${p.id}</td>
+                                <td>${p.nombre}</td>
+                                <td>${p.contacto}</td>
+                                <td><button class="btn-action" style="background:#ff4444; color:#fff;" onclick="eliminarPasajero(${p.id})">Eliminar</button></td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function pagarReferidos(driverId) {
+            if (confirm("¿Confirmas que se ha pagado la comisión de referidos (Ciclo de 2 días) a este chofer? El contador regresará a $0.00.")) {
+                fetch('/api/admin/pagar-referidos/' + driverId, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(response => {
+                        if(response.status === 'success') {
+                            alert(response.mensaje);
+                            cargarDatosAdmin();
+                        } else {
+                            alert("Error: " + response.mensaje);
+                        }
+                    });
+            }
+        }
+
+        document.getElementById('form-chofer').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                nombre: document.getElementById('nombre-chofer').value,
+                pin: document.getElementById('pin-chofer').value,
+                unidad: document.getElementById('unidad-chofer').value,
+                padrino: document.getElementById('select-padrino').value
+            };
+            fetch('/api/admin/agregar-chofer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(resp => {
+                if(resp.status === 'success') {
+                    alert(resp.mensaje);
+                    document.getElementById('form-chofer').reset();
+                    cargarDatosAdmin();
+                } else {
+                    alert("Error: " + resp.mensaje);
+                }
+            });
+        });
+
+        document.getElementById('form-pasajero').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                nombre: document.getElementById('nombre-pasajero').value,
+                contacto: document.getElementById('contacto-pasajero').value
+            };
+            fetch('/api/admin/agregar-pasajero', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(resp => {
+                if(resp.status === 'success') {
+                    alert(resp.mensaje);
+                    document.getElementById('form-pasajero').reset();
+                    cargarDatosAdmin();
+                } else {
+                    alert("Error: " + resp.mensaje);
+                }
+            });
+        });
+
+        function eliminarChofer(id) {
+            if(confirm("¿Eliminar este chofer?")) {
+                fetch('/api/admin/eliminar-chofer/' + id, { method: 'POST' }).then(() => cargarDatosAdmin());
+            }
+        }
+        function eliminarPasajero(id) {
+            if(confirm("¿Eliminar este pasajero?")) {
+                fetch('/api/admin/eliminar-pasajero/' + id, { method: 'POST' }).then(() => cargarDatosAdmin());
+            }
+        }
+        function eliminarCarrera(id) {
+            if(confirm("¿Eliminar esta carrera?")) {
+                fetch('/api/admin/eliminar-carrera/' + id, { method: 'POST' }).then(() => cargarDatosAdmin());
+            }
+        }
+
+        cargarDatosAdmin();
+        setInterval(cargarDatosAdmin, 5000);
+    </script>
 </body>
 </html>

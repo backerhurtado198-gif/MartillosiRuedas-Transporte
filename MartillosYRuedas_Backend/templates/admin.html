@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador - Martillos & Ruedas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', sans-serif; padding: 25px; }
+        .card-dark { background-color: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 22px; margin-bottom: 22px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .stat-card { background-color: #252525; border-left: 4px solid #ff9800; border-radius: 8px; padding: 18px; text-align: center; }
+        .stat-card h3 { color: #ff9800; margin: 0; font-weight: bold; }
+        .stat-card p { color: #aaa; margin: 5px 0 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        .table-dark-custom { background-color: #1e1e1e; color: #fff; border-color: #333; }
+        .table-dark-custom th { background-color: #282828; color: #ff9800; font-weight: 600; border-bottom: 2px solid #444; padding: 12px; }
+        .table-dark-custom td { padding: 12px; vertical-align: middle; border-color: #2c2c2c; }
+        .btn-gold { background-color: #ff9800; color: #000; font-weight: bold; border: none; padding: 8px 18px; border-radius: 6px; }
+        .btn-gold:hover { background-color: #e08700; color: #000; }
+        .form-control-dark, .form-select-dark { background-color: #2a2a2a; border: 1px solid #444; color: #fff !important; }
+        .form-control-dark:focus, .form-select-dark:focus { background-color: #333; border-color: #ff9800; box-shadow: none; color: #fff; }
+        .badge-ref { background-color: #3a3a3a; font-family: monospace; font-size: 14px; padding: 6px 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Encabezado -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+            <div>
+                <h2 class="text-warning fw-bold mb-0">🛠️ Panel de Control - Martillos & Ruedas</h2>
+                <small class="text-muted">Administración Central de Operaciones</small>
+            </div>
+            <div>
+                <a href="/" class="btn btn-outline-danger px-4">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Indicadores -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h3>${{ tarifa_actual }}</h3>
+                    <p>Tarifa Base Actual</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="border-left-color: #25d366;">
+                    <h3>{{ recargas_pendientes|length }}</h3>
+                    <p>Recargas Pendientes</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="border-left-color: #00bcd4;">
+                    <h3>{{ choferes|length }}</h3>
+                    <p>Choferes Registrados</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="border-left-color: #e91e63;">
+                    <h3>{{ carreras|length }}</h3>
+                    <p>Carreras Solicitadas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Columna Izquierda -->
+            <div class="col-lg-6">
+                <!-- Tarifa Base -->
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">💰 Cambiar Precio Base de Carreras ($ USD)</h5>
+                    <form action="/admin/cambiar_precio" method="POST" class="row g-2 align-items-center">
+                        <div class="col-sm-8">
+                            <input type="number" step="0.25" name="nuevo_precio" class="form-control form-control-dark" value="{{ tarifa_actual }}" required>
+                        </div>
+                        <div class="col-sm-4">
+                            <button type="submit" class="btn btn-gold w-100">Actualizar Tarifa</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Abono Manual de Saldo -->
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">💵 Recarga Manual / Abonar Saldo en Efectivo</h5>
+                    <form action="/admin/recarga_manual" method="POST" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label text-light small">Seleccionar Chofer:</label>
+                            <select name="chofer_id" class="form-select form-select-dark" required>
+                                <option value="">-- Elige un chofer --</option>
+                                {% for c in choferes %}
+                                <option value="{{ c.id }}">{{ c.nombre }} (Saldo actual: ${{ "%.2f"|format(c.saldo) }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light small">Monto ($ USD):</label>
+                            <input type="number" step="1.00" min="1" name="monto" class="form-control form-control-dark" placeholder="Ej: 10.00" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light small">Referencia / Observación:</label>
+                            <input type="text" name="referencia" class="form-control form-control-dark" placeholder="Ej: Pago Oficina San Juan">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-gold w-100">Abonar Saldo al Chofer</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Registrar Chofer -->
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">🛵 Registrar Nuevo Chofer en el Sistema</h5>
+                    <form action="/admin/registrar_chofer" method="POST" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="nombre" class="form-control form-control-dark" placeholder="Nombre completo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="telefono" class="form-control form-control-dark" placeholder="Teléfono" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="placa" class="form-control form-control-dark" placeholder="Placa del vehículo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="password" name="pin" class="form-control form-control-dark" placeholder="PIN de ingreso (4 dígitos)" required>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-success w-100 fw-bold">Guardar Nuevo Chofer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="col-lg-6">
+                <!-- Recargas por Aprobar -->
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">📲 Recargas Pago Móvil Pendientes de Verificación</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Chofer</th>
+                                    <th>Monto</th>
+                                    <th>N° Referencia</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recargas_pendientes %}
+                                    {% for r in recargas_pendientes %}
+                                    <tr>
+                                        <td><strong>{{ r.chofer_nombre }}</strong></td>
+                                        <td><span class="text-success fw-bold">${{ "%.2f"|format(r.monto) }}</span></td>
+                                        <td><span class="badge-ref">{{ r.referencia }}</span></td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <form action="/admin/aprobar_recarga/{{ r.id }}" method="POST">
+                                                    <button class="btn btn-success btn-sm fw-bold">✓ Aprobar</button>
+                                                </form>
+                                                <form action="/admin/rechazar_recarga/{{ r.id }}" method="POST">
+                                                    <button class="btn btn-danger btn-sm">✗ Rechazar</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-3">No hay solicitudes de recarga pendientes.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Lista de Choferes Activos -->
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">📋 Choferes Registrados y Saldo Disponible</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Teléfono</th>
+                                    <th>Placa</th>
+                                    <th>PIN</th>
+                                    <th>Saldo ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if choferes %}
+                                    {% for c in choferes %}
+                                    <tr>
+                                        <td><strong>{{ c.nombre }}</strong></td>
+                                        <td><small>{{ c.telefono }}</small></td>
+                                        <td><span class="badge bg-secondary">{{ c.placa or 'N/A' }}</span></td>
+                                        <td><code>{{ c.pin }}</code></td>
+                                        <td><span class="badge bg-success fs-6">${{ "%.2f"|format(c.saldo) }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="5" class="text-center text-muted py-3">No hay choferes registrados aún.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listado y Edición de Carreras -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">🚕 Listado, Edición y Eliminación de Carreras</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Pasajero</th>
+                                    <th>Teléfono</th>
+                                    <th>Fecha</th>
+                                    <th>Precio ($)</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if carreras %}
+                                    {% for car in carreras %}
+                                    <tr>
+                                        <td>#{{ car.id }}</td>
+                                        <td><strong>{{ car.pasajero_nombre or 'Pasajero Anónimo' }}</strong></td>
+                                        <td>{{ car.pasajero_telefono or 'N/D' }}</td>
+                                        <td><small class="text-muted">{{ car.fecha }}</small></td>
+                                        <td>
+                                            <form action="/admin/carrera/editar/{{ car.id }}" method="POST" class="d-inline-flex align-items-center gap-1">
+                                                <input type="number" step="0.50" name="precio" value="{{ car.precio }}" class="form-control form-control-sm form-control-dark" style="width: 80px;">
+                                        </td>
+                                        <td>
+                                                <select name="estado" class="form-select form-select-sm form-select-dark" style="width: 130px;">
+                                                    <option value="Pendiente" {% if car.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                                                    <option value="En Curso" {% if car.estado == 'En Curso' %}selected{% endif %}>En Curso</option>
+                                                    <option value="Completada" {% if car.estado == 'Completada' %}selected{% endif %}>Completada</option>
+                                                    <option value="Cancelada" {% if car.estado == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+                                                </select>
+                                        </td>
+                                        <td>
+                                                <button type="submit" class="btn btn-warning btn-sm fw-bold">Guardar</button>
+                                            </form>
+                                            <form action="/admin/carrera/eliminar/{{ car.id }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('¿Eliminar carrera?');">
+                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No hay carreras registradas en el sistema.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pasajeros Registrados -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card-dark">
+                    <h5 class="text-warning mb-3 fw-bold">👤 Pasajeros Autorizados Registrados</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Teléfono</th>
+                                    <th>PIN de Acceso (6 dígitos)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if pasajeros %}
+                                    {% for p in pasajeros %}
+                                    <tr>
+                                        <td>#{{ p.id }}</td>
+                                        <td>{{ p.nombre }}</td>
+                                        <td>{{ p.telefono }}</td>
+                                        <td><code>{{ p.pin }}</code></td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-3">No hay pasajeros registrados aún.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

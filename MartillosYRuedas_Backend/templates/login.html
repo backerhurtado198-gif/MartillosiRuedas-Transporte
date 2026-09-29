@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martillos & Ruedas - Acceso</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif; }
+        .card-custom { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 25px; }
+        .btn-gold { background-color: #ff9800; color: #000; font-weight: bold; border: none; }
+        .btn-gold:hover { background-color: #e08700; color: #000; }
+        .logo-video { max-width: 180px; border-radius: 50%; border: 3px solid #ff9800; margin-bottom: 15px; }
+    </style>
+</head>
+<body class="d-flex align-items-center min-vh-100 py-4">
+    <div class="container">
+        <div class="text-center mb-4">
+            <video class="logo-video" autoplay loop muted playsinline>
+                <source src="/static/logo.mp4" type="video/mp4">
+            </video>
+            <h1 class="text-warning fw-bold">🛵 Martillos & Ruedas</h1>
+            <p class="text-muted">Plataforma Digital de Movilidad</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show text-center" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row g-4 justify-content-center">
+            <!-- Pasajeros -->
+            <div class="col-md-5">
+                <div class="card-custom">
+                    <h4 class="text-warning mb-3">👤 Acceso Pasajeros</h4>
+                    <form action="/login_pasajero" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Número Telefónico:</label>
+                            <input type="text" name="telefono" class="form-control bg-dark text-white border-secondary" placeholder="04121234567" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">PIN de 6 dígitos:</label>
+                            <input type="password" name="pin" maxlength="6" pattern="\d{6}" class="form-control bg-dark text-white border-secondary" placeholder="123456" required>
+                        </div>
+                        <button type="submit" class="btn btn-gold w-100">Ingresar como Pasajero</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Personal Operativo -->
+            <div class="col-md-5">
+                <div class="card-custom">
+                    <h4 class="text-warning mb-3">🛠️ Personal Operativo</h4>
+                    <form action="/login_operativo" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">PIN Operativo / Administrador:</label>
+                            <input type="password" name="pin_operativo" class="form-control bg-dark text-white border-secondary" placeholder="Ingresa PIN (1234)" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-warning w-100 fw-bold">Entrar al Sistema</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

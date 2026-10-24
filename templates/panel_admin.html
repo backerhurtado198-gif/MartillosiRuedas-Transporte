@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Martillos & Ruedas</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #0b0b0b; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .top-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #141414; border: 1px solid #262626; padding: 10px 15px; border-radius: 10px; }
+        .top-tools form { display: flex; align-items: center; gap: 6px; margin: 0; }
+        .top-tools input { margin-bottom: 0 !important; width: 110px !important; padding: 6px 10px !important; text-align: center; }
+
+        .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric-card { background: #141414; border: 1px solid #262626; border-radius: 12px; padding: 15px; text-align: center; }
+        .metric-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+        .metric-val { font-size: 22px; font-weight: bold; color: #ff9800; }
+
+        .card { background: #141414; border: 1px solid #262626; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .btn-orange { background: #ff9800; color: #000; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-success { background: #5cb85c; color: #fff; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-danger { background: #d9534f; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-warning { background: #f0ad4e; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-logout { background: #d9534f; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 13px; font-weight: bold; }
+        
+        input, select { width: 100%; padding: 10px; background: #1c1c1e; color: #fff; border: 1px solid #333; border-radius: 6px; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
+        th { color: #ff9800; background: #1a1a1a; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#FFD700">
+<link rel="apple-touch-icon" href="/static/uploads/logo.jpg">
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW ok')).catch(err => console.log('SW error', err));
+    });
+}
+</script>
+</head>
+<body>
+    <div class="header">
+        <h2 style="color: #ff9800; margin: 0;">⚙️ Panel General de Administración</h2>
+        <div class="top-tools">
+            <form action="/panel_admin" method="POST">
+                <input type="hidden" name="accion" value="actualizar_tarifa">
+                <span style="font-size: 12px; color: #aaa;">Tarifa:</span>
+                <input type="number" name="tarifa_global" value="{{ config.tarifa }}" required>
+                <button type="submit" class="btn-orange">Actualizar</button>
+            </form>
+            <div style="width: 1px; height: 25px; background: #333;"></div>
+            <form action="/panel_admin" method="POST">
+                <input type="hidden" name="accion" value="cambiar_pin">
+                <span style="font-size: 12px; color: #aaa;">PIN Admin:</span>
+                <input type="password" name="nuevo_pin" placeholder="PIN" required>
+                <button type="submit" class="btn-orange">Cambiar</button>
+            </form>
+            <a href="/login" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- MÉTRICAS FINANCIERAS -->
+    <div class="grid-metrics">
+        <div class="metric-card">
+            <div class="metric-label">💵 Ganancia Administración (15%)</div>
+            <div class="metric-val" style="color: #5cb85c;">Bs. {{ "%.2f"|format(total_recaudado_admin) }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">🤝 Repartido a Padrinos (3%)</div>
+            <div class="metric-val" style="color: #5bc0de;">Bs. {{ "%.2f"|format(total_recaudado_padrinos) }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">🛵 Movido en la Red</div>
+            <div class="metric-val">Bs. {{ "%.2f"|format(volumen_total_movido) }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">💳 Créditos en Circulación</div>
+            <div class="metric-val" style="color: #ffc107;">Bs. {{ "%.2f"|format(total_creditos_circulacion) }}</div>
+        </div>
+    </div>
+
+    <!-- MULTIMEDIA & PUBLICIDAD -->
+    <div class="grid-2">
+        <div class="card">
+            <h3 style="color: #ff9800; margin-top: 0;">🖼️ Banner Institucional (Pasajero)</h3>
+            <form action="/panel_admin" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="accion" value="subir_banner">
+                <input type="file" name="banner_img" accept="image/*,video/*" required>
+                <button type="submit" class="btn-orange" style="width: 100%;">Subir / Cambiar Banner</button>
+            </form>
+            {% if config.banner %}
+                <div style="margin-top: 12px;"><img src="{{ config.banner }}" style="width: 100%; height: 90px; border-radius: 6px; border: 1px solid #333; object-fit: cover;"></div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3 style="color: #ffc107; margin-top: 0;">🎬 Video Splash Screen (Inicio)</h3>
+            <form action="/panel_admin" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="accion" value="subir_splash">
+                <input type="file" name="splash_video_file" accept="video/*" required>
+                <button type="submit" class="btn-success" style="width: 100%;">Subir / Cambiar Splash Video</button>
+            </form>
+            {% if config.splash_video %}
+                <div style="margin-top: 12px;"><video src="{{ config.splash_video }}" autoplay muted loop style="width: 100%; height: 90px; border-radius: 6px; border: 1px solid #333; object-fit: cover;"></video></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- GESTIÓN DE CHOFERES, SALDOS Y GANANCIAS -->
+    <div class="grid-2">
+        <div class="card">
+            <h3 style="color: #ff9800; margin-top: 0;">🛵 Gestión y Créditos de Choferes</h3>
+            
+    <!-- 1. LÍNEA COMPACTA DE RECARGA POR REFERENCIA -->
+    <div style="background: #161616; padding: 12px; border-radius: 8px; border: 1px solid #282828; margin-bottom: 16px;">
+        <div style="color: #999; font-size: 11px; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Recarga Rápida de Créditos</div>
+        <form method="POST" action="/recargar_creditos_ref" style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; margin: 0;">
+            <input type="text" name="identificador" placeholder="PIN / Cédula" required style="width: 26%; padding: 9px 10px; background: #111; border: 1px solid #2e2e2e; color: #fff; border-radius: 6px; font-size: 13px;">
+            <input type="text" name="referencia" placeholder="N° de Referencia" required style="width: 32%; padding: 9px 10px; background: #111; border: 1px solid #2e2e2e; color: #fff; border-radius: 6px; font-size: 13px;">
+            <input type="number" step="0.01" name="monto_creditos" placeholder="Monto Créditos" required style="width: 24%; padding: 9px 10px; background: #111; border: 1px solid #2e2e2e; color: #fff; border-radius: 6px; font-size: 13px;">
+            <button type="submit" style="width: 18%; background: #2ecc71; color: #000; font-weight: bold; border: none; padding: 9px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap;">Recargar</button>
+        </form>
+    </div>
+
+    <!-- 2. PANEL DE REGISTRO DE CHOFERES -->
+    <div style="background: #161616; padding: 14px; border-radius: 8px; border: 1px solid #282828;">
+        <div style="color: #999; font-size: 11px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">🏍️ Panel de Registro de Choferes</div>
+        <form method="POST" action="/registrar_chofer_panel" style="margin: 0;">
+            <input type="text" name="nombre" placeholder="Nombre completo" required style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+            <div style="display: flex; gap: 8px;">
+                <input type="text" name="cedula" placeholder="Cédula de Identidad" required style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+                <input type="text" name="telefono" placeholder="Teléfono" required style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" name="placa" placeholder="Placa / Moto" style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+                <input type="text" name="pin" placeholder="PIN de Acceso (4 dígitos)" required style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+                <input type="number" step="0.01" name="creditos" placeholder="Créditos Iniciales (Ej: 500)" required style="width: 100%; padding: 10px 12px; margin-bottom: 10px; background: #141414; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; box-sizing: border-box;">
+            </div>
+            <button type="submit" style="width: 100%; background: #f39c12; color: #000; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 4px;">Registrar Chofer</button>
+        </form>
+    </div>
+    
+        </div>
+    </div>
+
+    <!-- PASAJEROS Y PUNTOS PATROCINADOS -->
+    <div class="grid-2">
+        <div class="card">
+            <h3 style="color: #ff9800; margin-top: 0;">👤 Pasajeros Registrados</h3>
+            <form action="/panel_admin" method="POST" style="background: #1c1c1e; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                <input type="hidden" name="accion" value="registrar_pasajero">
+                <input type="text" name="nombre" placeholder="Nombre completo" required style="margin-bottom:8px;">
+                <input type="text" name="cedula" placeholder="Cédula de Identidad" required style="margin-bottom:8px;">
+                <input type="text" name="telefono" placeholder="Teléfono" required style="margin-bottom:8px;">
+                <input type="text" name="usuario" placeholder="Usuario app" required style="margin-bottom:8px;">
+                <input type="password" name="pin" placeholder="PIN" required style="margin-bottom:8px;">
+                <button type="submit" class="btn-success" style="width: 100%;">Registrar Pasajero</button>
+            </form>
+            <table>
+                <thead><tr><th>Nombre</th><th>Usuario / Cédula</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {% for p in lista_pasajeros %}
+                        <tr>
+                            <td>{{ p.nombre }}<br><span style="font-size:11px; color:#888;">{{ p.telefono }}</span></td>
+                            <td>{{ p.usuario }}<br><span style="font-size:11px; color:#ff9800;">CI: {{ p.cedula }}</span></td>
+                            <td>
+                                <form action="/panel_admin" method="POST" onsubmit="return confirm('¿Eliminar pasajero?');">
+                                    <input type="hidden" name="accion" value="eliminar_pasajero">
+                                    <input type="hidden" name="pasajero_id" value="{{ p.id }}">
+                                    <button type="submit" class="btn-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        
+    </div>
+
+    <!-- HISTORIAL DE CARRERAS GLOBAL -->
+    <div class="card">
+        <h3 style="color: #ff9800; margin-top: 0;">🌐 Historial Global de Carreras (Red)</h3>
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Pasajero</th><th>Origen</th><th>Estado</th><th>Monto</th><th>Comisión Admin</th><th>Padrino</th><th>Rating</th></tr>
+            </thead>
+            <tbody>
+                {% for cg in carreras_globales %}
+                    <tr>
+                        <td>#{{ cg.id }}</td>
+                        <td>{{ cg.pasajero }}</td>
+                        <td>{{ cg.origen }}</td>
+                        <td>
+                            {% if cg.estado == 'finalizado' %}<span style="color: #5cb85c; font-weight: bold;">Finalizado</span>
+                            {% elif cg.estado == 'aprobado' %}<span style="color: #f0ad4e; font-weight: bold;">En Curso</span>
+                            {% elif cg.estado == 'pendiente' %}<span style="color: #ff9800; font-weight: bold;">Pendiente</span>
+                            {% else %}<span style="color: #d9534f;">Cancelado</span>{% endif %}
+                        </td>
+                        <td>Bs. {{ "%.2f"|format(cg.monto) }}</td>
+                        <td style="color: #5cb85c;">Bs. {{ "%.2f"|format(cg.comision_admin) }}</td>
+                        <td style="color: #5bc0de;">Bs. {{ "%.2f"|format(cg.pago_padrino) }}</td>
+                        <td>{% if cg.rating > 0 %}⭐ {{ cg.rating }}{% else %}-{% endif %}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="8" style="text-align: center; color: #666;">No hay carreras registradas aún.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+<!-- MODULO ACCIONISTAS INFALIBLE -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; margin-bottom: 40px; width: 100%; box-sizing: border-box;">
+    <div style="background: #141414; border: 1px solid #222; border-radius: 12px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #ffcc00; font-size: 15px; margin: 0;">📊 Ganancias de Accionistas</h3>
+            <span style="color: #2ecc71; font-size: 12px; font-weight: bold;">Libre Admin: Bs. {{ "%.2f"|format(ganancia_neta_admin|default(0)) }}</span>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #fff;">
+            <thead>
+                <tr style="color: #ffcc00; border-bottom: 1px solid #333;">
+                    <th style="padding: 8px;">Accionista</th>
+                    <th style="padding: 8px;">%</th>
+                    <th style="padding: 8px;">Ganancia</th>
+                    <th style="padding: 8px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in accionistas_lista %}
+                <tr style="border-bottom: 1px solid #222;">
+                    <td style="padding: 10px 8px; font-weight: bold;">{{ acc.nombre }}</td>
+                    <td style="padding: 10px 8px; color: #aaa;">{{ "%.1f"|format(acc.porcentaje) }}%</td>
+                    <td style="padding: 10px 8px; color: #2ecc71; font-weight: bold;">Bs. {{ "%.2f"|format(acc.ganancia) }}</td>
+                    <td style="padding: 10px 8px; display: flex; gap: 6px;">
+                        <form action="/liquidar_accionista/{{ acc.id }}" method="POST" style="margin:0;"><button type="submit" style="background:#ffcc00;color:#000;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;">Liquidar</button></form>
+                        <form action="/eliminar_accionista/{{ acc.id }}" method="POST" style="margin:0;"><button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;">X</button></form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Sin accionistas registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="background: #141414; border: 1px solid #222; border-radius: 12px; padding: 20px;">
+        <h3 style="color: #ffcc00; font-size: 15px; margin-top: 0; margin-bottom: 15px;">👥 Registrar Accionista</h3>
+        <form action="/agregar_accionista" method="POST">
+            <input type="text" name="nombre" placeholder="Nombre" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #2a2a2a;background:#0f0f0f;color:#fff;margin-bottom:12px;box-sizing:border-box;">
+            <input type="number" step="0.1" name="porcentaje" placeholder="% Ganancia (Ej: 10)" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #2a2a2a;background:#0f0f0f;color:#fff;margin-bottom:12px;box-sizing:border-box;">
+            <button type="submit" style="width:100%;padding:12px;background:#ffcc00;color:#000;font-weight:bold;border:none;border-radius:8px;cursor:pointer;">Registrar</button>
+        </form>
+    </div>
+</div>
+<script>
+// Forzar visualmente los cambios de Padrinos -> Accionistas
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('h1,h2,h3,h4,h5,p,span,label,div').forEach(el => {
+        if(el.childNodes.length === 1 && el.nodeType === 1){
+            let t = el.innerText.toUpperCase();
+            if(t.includes('GANANCIA ADMINISTRACI')){ el.innerText = 'GANANCIA DEL SISTEMA (18%)'; }
+            if(t.includes('REPARTIDO A PADRINOS')){ el.innerText = 'REPARTIDO A ACCIONISTAS'; }
+            if(t.includes('SELECCIONAR PADRINO')){ el.style.display = 'none'; }
+        }
+    });
+    document.querySelectorAll('select').forEach(sel => {
+        if(sel.name === 'padrino_id' || sel.innerHTML.toUpperCase().includes('PADRINO')){
+            sel.style.display = 'none';
+            if(sel.previousElementSibling) sel.previousElementSibling.style.display = 'none';
+        }
+    });
+    
+    // Inyectar el monto total repartido arriba
+    let montoRepartido = '{{ "%.2f"|format(total_repartido_accionistas|default(0)) }}';
+    document.querySelectorAll('.metric-val').forEach(m => {
+        let parent = m.parentElement;
+        if(parent && parent.innerText.toUpperCase().includes('ACCIONISTAS')){
+            m.innerText = 'Bs. ' + montoRepartido;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+
+<!-- PARCHE VISUAL NATIVO 3 METRICAS -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    function buscarTarjeta(clave) {
+        const els = Array.from(document.querySelectorAll('div'));
+        const matches = els.filter(el => {
+            const t = (el.innerText || '').toUpperCase();
+            return t.includes(clave) && t.includes('BS.') && el.children.length >= 2 && el.children.length <= 4;
+        });
+        return matches.length ? matches[matches.length - 1] : null;
+    }
+
+    const cGanancia = buscarTarjeta('GANANCIA DEL SISTEMA');
+    const cAccionistas = buscarTarjeta('ACCIONISTAS');
+    const cMovido = buscarTarjeta('MOVIDO EN LA RED');
+    const cCirculacion = buscarTarjeta('CIRCULACIÓN');
+
+    if (cCirculacion && cMovido && cAccionistas) {
+        const contenedor = cCirculacion.parentElement;
+
+        if (cGanancia) cGanancia.style.display = 'none';
+
+        cCirculacion.children[0].innerText = '💳 CRÉDITOS EN CIRCULACIÓN';
+        cMovido.children[0].innerText = '📉 CRÉDITOS CONSUMIDOS';
+        cAccionistas.children[0].innerText = '💼 GANANCIA DE ACCIONISTAS';
+
+        contenedor.appendChild(cCirculacion);
+        contenedor.appendChild(cMovido);
+        contenedor.appendChild(cAccionistas);
+
+        if (window.getComputedStyle(contenedor).display === 'grid') {
+            contenedor.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        }
+    }
+});
+</script>
+
+<!-- BOTON BORRAR HISTORIAL -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('form-borrar-historial')) return;
+
+    // Buscar el encabezado de Historial Global de Carreras o la tabla de carreras
+    let headerEl = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, div, span')).find(el => 
+        el.children.length === 0 && el.innerText && el.innerText.includes('Historial Global de Carreras')
+    );
+
+    if (!headerEl) {
+        const th = Array.from(document.querySelectorAll('th')).find(el => el.innerText.includes('Comisión Admin'));
+        if (th) {
+            const card = th.closest('table').parentElement;
+            headerEl = card.firstElementChild;
+            if (headerEl && headerEl.tagName === 'TABLE') {
+                const nuevoHeader = document.createElement('div');
+                nuevoHeader.innerText = '🌐 Historial Global de Carreras (Red)';
+                nuevoHeader.style.cssText = 'color: #f39c12; font-weight: bold; font-size: 15px; margin-bottom: 12px;';
+                card.insertBefore(nuevoHeader, headerEl);
+                headerEl = nuevoHeader;
+            }
+        }
+    }
+
+    if (headerEl) {
+        const contenedor = headerEl.tagName === 'SPAN' ? headerEl.parentElement : headerEl;
+        contenedor.style.display = 'flex';
+        contenedor.style.justifyContent = 'space-between';
+        contenedor.style.alignItems = 'center';
+        contenedor.style.width = '100%';
+
+        const form = document.createElement('form');
+        form.id = 'form-borrar-historial';
+        form.method = 'POST';
+        form.action = '/limpiar_historial_carreras';
+        form.style.margin = '0';
+        form.style.marginRight = '15%';
+        form.onsubmit = () => confirm('¿Estás seguro de que deseas eliminar todo el historial de carreras?');
+
+        const btn = document.createElement('button');
+        btn.type = 'submit';
+        btn.innerHTML = '🗑️ Eliminar Historial';
+        btn.style.cssText = 'background-color: #d9534f; color: #fff; border: 1px solid #b52b27; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer;';
+
+        form.appendChild(btn);
+        contenedor.appendChild(form);
+    }
+});
+</script>
+<!-- FIN BOTON BORRAR HISTORIAL -->
